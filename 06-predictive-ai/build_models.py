@@ -38,6 +38,7 @@ def build_sklearn_model() -> None:
     flama.dump(
         model,
         path=OUTPUT_DIR / "sklearn_model.flm",
+        family="ml",
         model_id=uuid.UUID("cb659dec-ca09-40f8-a804-63c1f89113f6"),
         params={"solver": "adam"},
         metrics={"recall": "0.95"},
@@ -74,7 +75,7 @@ def build_tensorflow_model() -> None:
         verbose=0,
     )
 
-    flama.dump(model, path=OUTPUT_DIR / "tensorflow_model.flm")
+    flama.dump(model, path=OUTPUT_DIR / "tensorflow_model.flm", family="ml")
     print(f"  tensorflow_model.flm -> {OUTPUT_DIR / 'tensorflow_model.flm'}")
 
 
@@ -117,7 +118,7 @@ def build_pytorch_model() -> None:
             loss_result.backward()
             optimizer.step()
 
-    flama.dump(model, path=OUTPUT_DIR / "pytorch_model.flm")
+    flama.dump(model, path=OUTPUT_DIR / "pytorch_model.flm", family="ml")
     print(f"  pytorch_model.flm   -> {OUTPUT_DIR / 'pytorch_model.flm'}")
 
 

@@ -5,9 +5,9 @@ from datetime import datetime
 
 import pydantic
 
-from flama import Flama, types
+from flama import Flama, schemas
 from flama.client import Client
-from flama.models import ModelResource
+from flama.models import MLResource
 from flama.resources.routing import ResourceRoute
 
 MODELS_DIR = (
@@ -49,15 +49,15 @@ class Y(pydantic.BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class MySKModel(ModelResource):
+class MySKModel(MLResource):
     verbose_name = "My ScikitLearn Model"
     model_path = str(MODELS_DIR / "sklearn_model.flm")
     name = "sk_model"
 
     @ResourceRoute.method("/predict/", methods=["POST"], name="model-predict")
     def predict(
-        self, data: t.Annotated[types.Schema, types.SchemaMetadata(X)]
-    ) -> t.Annotated[types.Schema, types.SchemaMetadata(Y)]:
+        self, data: t.Annotated[schemas.Schema, schemas.SchemaMetadata(X)]
+    ) -> t.Annotated[schemas.Schema, schemas.SchemaMetadata(Y)]:
         """
         tags:
             - My ScikitLearn Model

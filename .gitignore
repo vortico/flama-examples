@@ -63,3 +63,6 @@ test.db
 # Templates
 flama/templates
 templates/out
+
+# OS
+.DS_Store

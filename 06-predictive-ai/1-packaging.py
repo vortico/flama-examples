@@ -34,6 +34,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
     flama.dump(
         model,
         path=output / "sklearn_model.flm",
+        family="ml",
         model_id=uuid.uuid4(),
         timestamp=datetime.datetime(2023, 3, 10, 11, 30, 0),
         params={"optimizer": "adams"},
@@ -62,7 +63,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
 # ---------------------------------------------------------------------------
 
 with tempfile.TemporaryDirectory() as tmpdir:
-    flama.dump(model, path=pathlib.Path(tmpdir) / "minimal.flm")
+    flama.dump(model, path=pathlib.Path(tmpdir) / "minimal.flm", family="ml")
     art = flama.load(path=pathlib.Path(tmpdir) / "minimal.flm")
     assert art.model is not None
     print("[dump+load minimal]        OK")
@@ -74,7 +75,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
 for fmt in ("bz2", "lzma", "zlib", "zstd"):
     with tempfile.TemporaryDirectory() as tmpdir:
         p = pathlib.Path(tmpdir) / f"model_{fmt}.flm"
-        flama.dump(model, path=p, compression=fmt)
+        flama.dump(model, path=p, family="ml", compression=fmt)
         size = p.stat().st_size
         loaded = flama.load(path=p)
         assert loaded.model is not None
@@ -102,7 +103,7 @@ tf_model.fit(
 )
 
 with tempfile.TemporaryDirectory() as tmpdir:
-    flama.dump(tf_model, path=pathlib.Path(tmpdir) / "tensorflow_model.flm")
+    flama.dump(tf_model, path=pathlib.Path(tmpdir) / "tensorflow_model.flm", family="ml")
     art = flama.load(path=pathlib.Path(tmpdir) / "tensorflow_model.flm")
     assert art.meta.framework.lib == "tensorflow"
     r = art.model.predict(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), verbose=0)
@@ -151,7 +152,7 @@ for _ in range(2000):
         optimizer.step()
 
 with tempfile.TemporaryDirectory() as tmpdir:
-    flama.dump(pt_model, path=pathlib.Path(tmpdir) / "pytorch_model.flm")
+    flama.dump(pt_model, path=pathlib.Path(tmpdir) / "pytorch_model.flm", family="ml")
     art = flama.load(path=pathlib.Path(tmpdir) / "pytorch_model.flm")
     assert art.meta.framework.lib == "torch"
     assert art.model is not None

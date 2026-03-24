@@ -33,6 +33,7 @@ def test_dump_load_api():
         flama.dump(
             model,
             path=output_path,
+            family="ml",
             model_id=uuid.uuid4(),
             timestamp=datetime.datetime(2023, 3, 10, 11, 30, 0),
             params={"optimizer": "adams"},
@@ -73,7 +74,7 @@ def test_compression_values():
     for compression in ("bz2", "lzma", "zlib", "zstd"):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = pathlib.Path(tmpdir) / f"test_{compression}.flm"
-            flama.dump(model, path=path, compression=compression)
+            flama.dump(model, path=path, family="ml", compression=compression)
             loaded = flama.load(path=path)
             assert loaded.model is not None
     print("  PASS: all compression values (bz2, lzma, zlib, zstd)")
@@ -125,12 +126,12 @@ def test_resource_route_method():
 
 
 def test_base_model_class():
-    from flama.models import BaseModel
+    from flama.models import BaseModel, MLModel
 
     assert BaseModel is not None
     assert hasattr(BaseModel, "inspect")
-    assert hasattr(BaseModel, "predict")
-    print("  PASS: BaseModel class exists with inspect/predict")
+    assert hasattr(MLModel, "predict")
+    print("  PASS: BaseModel/MLModel classes exist with inspect/predict")
 
 
 if __name__ == "__main__":

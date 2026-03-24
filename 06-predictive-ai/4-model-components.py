@@ -1,37 +1,16 @@
 import asyncio
 import pathlib
-import typing
 from datetime import datetime
 
 import flama
 from flama import Flama
 from flama.client import Client
-from flama.models import BaseModel, BaseModelResource, ModelComponent
+from flama.models import MLModel, ModelComponent, BaseMLResource
 from flama.resources.routing import ResourceRoute
 
 MODELS_DIR = (
     pathlib.Path(__file__).resolve().parents[3] / "flama-site" / "public" / "models"
 )
-
-
-# ---------------------------------------------------------------------------
-# Custom Model
-# ---------------------------------------------------------------------------
-
-
-class MyCustomModel(BaseModel):
-    def __init__(self, model=None, meta=None, artifacts=None):
-        self.model = model
-        self.meta = meta
-        self.artifacts = artifacts
-
-    def inspect(self) -> typing.Any:
-        return self.model.get_params()
-
-    def predict(self, x: typing.Any) -> typing.Any:
-        result = self.model.predict(x)
-        # numpy types are not JSON-serialisable
-        return [int(v) for v in result] if hasattr(result, "tolist") else result
 
 
 # ---------------------------------------------------------------------------
@@ -41,24 +20,25 @@ class MyCustomModel(BaseModel):
 
 class MyCustomModelComponent(ModelComponent):
     def __init__(self, model_path: str):
-        self._model_path = model_path
-        self.model = MyCustomModel()
+        model = MLModel(path=pathlib.Path(model_path))
+        super().__init__(model)
 
-    def load(self):
-        load_model = flama.load(path=self._model_path)
-        self.model = MyCustomModel(
-            load_model.model, load_model.meta, load_model.artifacts
-        )
+    async def startup(self) -> None:
+        # Skip auto-loading on startup to demonstrate lazy loading
+        pass
 
     def reset(self):
-        self.model = MyCustomModel()
+        self._model._backend = None
 
-    def resolve(self) -> MyCustomModel:
-        if not self.model.model:
+    @property
+    def loaded(self) -> bool:
+        return self._model._backend is not None
+
+    def resolve(self) -> MLModel:
+        if not self.loaded:
             self.load()
 
-        assert self.model.model
-        return self.model
+        return self._model
 
 
 component = MyCustomModelComponent(str(MODELS_DIR / "sklearn_model.flm"))
@@ -69,7 +49,7 @@ component = MyCustomModelComponent(str(MODELS_DIR / "sklearn_model.flm"))
 # ---------------------------------------------------------------------------
 
 
-class MyCustomModelResource(BaseModelResource[MyCustomModelComponent]):
+class MyCustomModelResource(BaseMLResource[MyCustomModelComponent]):
     name = "custom_model"
     verbose_name = "Lazy-loaded ScikitLearn Model"
     component = component
@@ -88,7 +68,7 @@ class MyCustomModelResource(BaseModelResource[MyCustomModelComponent]):
                 },
                 "custom": {
                     **self.info,
-                    "loaded": self.component.model.model is not None,
+                    "loaded": self.component.loaded,
                     "date": str(datetime.now().date()),
                     "time": str(datetime.now().time()),
                 },
